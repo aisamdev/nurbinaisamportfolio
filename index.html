@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Aisam Nurbin | Portfolio</title>
+  <meta name="description" content="Portfolio of Aisam Nurbin..." />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Oswald:wght@400;500;600;700&family=Rajdhani:wght@500;600;700&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="./style.css">
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+
+<body class="dark">
+
+  <!-- Videogame HUD Premium Pill Navbar -->
+  <nav class="hud-nav">
+    <div class="nav-content">
+      <div class="nav-logo">
+        <i data-lucide="hexagon" class="logo-icon"></i>
+      </div>
+      <div class="nav-links">
+        <a href="#profile" class="nav-link">Profile</a>
+        <a href="#about" class="nav-link">About</a>
+        <a href="#projects" class="nav-link">Recent Projects</a>
+        <a href="#experience" class="nav-link">Experience</a>
+      </div>
+      <button class="mobile-menu-btn" aria-label="Toggle Menu">
+        <i data-lucide="menu"></i>
+      </button>
+    </div>
+  </nav>
+
+  <!-- Mobile HUD Overlay Menu -->
+  <div class="mobile-nav-overlay" id="mobileNav">
+    <button class="close-menu-btn" id="closeMenuBtn" aria-label="Close Menu">
+      <i data-lucide="x"></i>
+    </button>
+    <div class="mobile-nav-links">
+      <a href="#profile" class="mobile-link">Profile</a>
+      <a href="#about" class="mobile-link">About</a>
+      <a href="#projects" class="mobile-link">Recent Projects</a>
+      <a href="#experience" class="mobile-link">Experience</a>
+    </div>
+  </div>
+
+  <!-- Cinematic Hero Section -->
+  <section id="hero" class="hero-section">
+    <!-- Background Image -->
+    <img src="spiderman-bg.jpg.jpg" class="hero-bg-img" alt="Spiderman Background" />
+    <div class="hero-overlay"></div>
+
+    <!-- Ambient Particle System -->
+    <canvas id="particle-canvas" class="particle-canvas"></canvas>
+
+    <!-- Scaled appropriately in CSS so it won't force horizontal scroll -->
+    <div class="hero-bg-text">AISAM</div>
+
+    <!-- Hero Typing aligned to bottom left with HUD aesthetic -->
+    <div class="hero-content">
+      <div class="hud-accent-line"></div>
+      <div class="typing-wrapper">
+        <span class="hud-bracket">[</span>
+        <h2 id="typing-text" class="typing-text"></h2>
+        <span class="cursor"></span>
+        <span class="hud-bracket">]</span>
+      </div>
+    </div>
+
+    <!-- Scroll Indicator -->
+    <div class="scroll-indicator-wrapper">
+      <i data-lucide="chevrons-down" class="scroll-indicator"></i>
+    </div>
+  </section>
+
+  <main class="content-section">
+    <div class="main-grid">
+
+      <!-- Header / Profile Section -->
+      <div id="profile" class="bento-card header-card lg-col-2 animate-on-scroll tech-card">
+        <div class="header-content">
+          <div class="profile-avatar">
+            <img src="profile1.jpg" alt="Aisam G. Nurbin" class="profile-img-1" />
+            <img src="profile2.png" alt="Aisam G. Nurbin Hover" class="profile-img-2" />
+          </div>
+          <div class="header-text">
+            <div class="name-wrapper">
+              <h1>Aisam G. Nurbin</h1>
+              <i data-lucide="check-circle" class="verified-icon"></i>
+            </div>
+            <div class="location">
+              <i data-lucide="map-pin" class="icon-sm"></i>
+              <span>Zamboanga City, Philippines</span>
+            </div>
+            <p class="subtitle">
+              AI <span class="divider">|</span> Aspiring Software Engineer <span class="divider">|</span> Video Editor
+            </p>
+            <div class="action-buttons">
+              <a href="https://calendly.com/aisamnurbin-g/discovery-call?month=2026-03" target="_blank" rel="noreferrer"
+                class="btn btn-primary">
+                <i data-lucide="phone-call" class="icon-sm"></i> Schedule a Call
+              </a>
+              <a href="mailto:mishinei.aisamn1@gmail.com" class="btn btn-secondary">
+                <i data-lucide="send" class="icon-sm"></i> Send Email
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- IdCard -->
+      <div class="id-card bento-card lg-col-1 animate-on-scroll tech-card">
+        <img src="zppsu-bg.png" alt="ZPPSU Building" class="id-card-bg" />
+        <div class="id-card-overlay"></div>
+        <div class="id-card-content">
+          <div class="id-card-header">
+            <div>
+              <h3 class="id-title">ZPPSU</h3>
+              <p class="id-subtitle">College of Information<br />and Computing Sciences</p>
+            </div>
+            <div class="id-icon-wrapper"><i data-lucide="check-circle"></i></div>
+          </div>
+          <div class="id-card-middle">
+            <div class="id-divider"></div>
+          </div>
+          <div class="id-card-footer">
+            <div>
+              <p class="id-label">Student ID</p>
+              <p class="id-number">2026-####-IT</p>
+            </div>
+            <div class="id-dot-wrapper">
+              <div class="id-dot"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- About & Tech Stack Container -->
+      <div id="about" class="col-flex lg-col-1 content-start scroll-offset-fix">
+        <div class="bento-card animate-on-scroll creative-card">
+          <h2 class="card-title">About</h2>
+          <p class="card-text">I am Aisam G. Nurbin, a developer and creative specializing in building modern websites
+            and web applications. I focus on creating practical, problem-solving software solutions that help
+            individuals and businesses streamline their digital presence.</p>
+          <p class="card-text mt-4">Beyond web development, I am a professional video editor specializing in short-form
+            content. I've helped creators and brands grow their audience and elevate their visual storytelling through
+            engaging, high-retention editing techniques.</p>
+          <p class="card-text mt-4">Lately, I've been diving deeper into the world of Artificial Intelligence. My work
+            involves understanding how AI models function under the hood and leveraging generative AI tools to optimize
+            workflows, build intelligent applications, and deliver cutting-edge solutions.</p>
+        </div>
+
+        <div class="bento-card animate-on-scroll tech-card">
+          <h2 class="card-title mb-6">Tech Stack</h2>
+          <div class="stack-groups">
+            <div class="stack-group">
+              <h3 class="stack-title">Frontend</h3>
+              <div class="pill-container">
+                <div class="pill"><i data-lucide="code" class="icon-orange"></i><span>HTML</span></div>
+                <div class="pill"><i data-lucide="code" class="icon-blue"></i><span>CSS</span></div>
+                <div class="pill"><i data-lucide="code" class="icon-yellow"></i><span>JavaScript</span></div>
+                <div class="pill"><i data-lucide="code" class="icon-cyan"></i><span>Tailwind</span></div>
+              </div>
+            </div>
+            <div class="stack-group">
+              <h3 class="stack-title">Backend & Database</h3>
+              <div class="pill-container">
+                <div class="pill"><i data-lucide="database" class="icon-indigo"></i><span>PHP</span></div>
+                <div class="pill"><i data-lucide="database" class="icon-blue"></i><span>SQL</span></div>
+                <div class="pill"><i data-lucide="database" class="icon-orange"></i><span>MySQL</span></div>
+              </div>
+            </div>
+            <div class="stack-group">
+              <h3 class="stack-title">Creative Tools</h3>
+              <div class="pill-container">
+                <div class="pill"><i data-lucide="video" class="icon-red"></i><span>DaVinci Resolve</span></div>
+                <div class="pill"><i data-lucide="video" class="icon-zinc"></i><span>CapCut</span></div>
+              </div>
+            </div>
+            <div class="stack-group">
+              <h3 class="stack-title">Hardware / Other</h3>
+              <div class="pill-container">
+                <div class="pill"><i data-lucide="cpu" class="icon-teal"></i><span>Arduino (IoT)</span></div>
+                <div class="pill"><i data-lucide="code" class="icon-orange-dark"></i><span>Git</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Projects -->
+      <div id="projects" class="bento-card lg-col-1 animate-on-scroll creative-card scroll-offset-fix">
+        <div class="flex-between mb-6">
+          <h2 class="card-title">Recent Projects</h2>
+        </div>
+        <div class="projects-list">
+          <div class="project-card">
+            <h3 class="project-title">ZPPSU Student Portal</h3>
+            <p class="project-desc">A complete CRUD management system with a dynamic UI, integrated Useless Facts API,
+              DiceBear automatic avatars, and a PHPMailer SMTP backend.</p>
+            <a href="https://nurbinaisamn.unaux.com" target="_blank" rel="noreferrer" class="project-link">
+              <i data-lucide="link"></i> nurbinaisamn.unaux.com
+            </a>
+          </div>
+          <div class="project-card">
+            <h3 class="project-title">Creative Portfolio</h3>
+            <p class="project-desc">My professional video editing showcase featuring cinematic cuts and motion graphics.
+            </p>
+            <a href="https://aisamportfolio.vercel.app" target="_blank" rel="noreferrer" class="project-link">
+              <i data-lucide="link"></i> aisamportfolio.vercel.app
+            </a>
+          </div>
+          <div class="project-card">
+            <h3 class="project-title">Smart Plant Watering System</h3>
+            <p class="project-desc">An IoT hardware project utilizing Arduino UNO for automated environmental
+              monitoring.</p>
+            <span class="project-private">Private / Hardware</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Experience -->
+      <div id="experience" class="bento-card lg-col-1 animate-on-scroll tech-card scroll-offset-fix">
+        <h2 class="card-title mb-8 flex-gap"><i data-lucide="briefcase" class="icon-blue-lg"></i> Experience</h2>
+        <div class="timeline">
+          <div class="timeline-item">
+            <div class="timeline-line"></div>
+            <div class="timeline-dot dot-active"></div>
+            <h3 class="timeline-title">Freelance Video Editor</h3>
+            <div class="timeline-meta"><span>2026 – Present</span><span class="dot-separator">•</span><span>Remote
+                (PH)</span></div>
+            <p class="timeline-desc">Helping creators, brands, and businesses polish short-form content with strong
+              hooks, clean captions, pacing, and retention-focused edits across multiple platforms.</p>
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-line"></div>
+            <div class="timeline-dot"></div>
+            <h3 class="timeline-title">BS Information Technology (BSIT)</h3>
+            <div class="timeline-meta"><span>2024 – Present</span><span class="dot-separator">•</span><span>ZPPSU</span>
+            </div>
+            <p class="timeline-desc">Currently a second-year student at Zamboanga Peninsula Polytechnic State
+              University. Developing full-stack skills, building web-based CRUD management systems, and creating
+              hardware integrations like an Arduino-based IoT Smart Plant Watering System.</p>
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-line"></div>
+            <div class="timeline-dot"></div>
+            <h3 class="timeline-title">Video Editing Experience (Academic & Self-Led Projects)</h3>
+            <div class="timeline-meta"><span>2024 – Present</span></div>
+            <p class="timeline-desc">Edited various local and academic video projects to support studies, gradually
+              refining editing skills and discovering a focus on talking-head and short-form content designed for
+              clarity and engagement.</p>
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-line"></div>
+            <div class="timeline-dot"></div>
+            <h3 class="timeline-title">Work Immersion – Video Production</h3>
+            <div class="timeline-meta"><span>2023</span><span class="dot-separator">•</span><span>Ateneo de Zamboanga
+                University</span></div>
+            <p class="timeline-desc">Recognized as Top 1 in Video Production during work immersion for the Golden
+              Harvest standalone event, contributing to planning, editing, and final video output.</p>
+          </div>
+          <div class="timeline-item border-none">
+            <div class="timeline-dot"></div>
+            <h3 class="timeline-title">First Video Edit</h3>
+            <div class="timeline-meta"><span>2018</span><span class="dot-separator">•</span><span>ZNHS West</span></div>
+            <p class="timeline-desc">Created first video using KineMaster, sparking long-term interest and passion for
+              video editing.</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+  <script src="./script.js"></script>
+</body>
+
+</html>
