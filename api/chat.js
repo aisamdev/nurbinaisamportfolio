@@ -1,5 +1,3 @@
-const https = require('https');
-
 module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
@@ -14,23 +12,41 @@ module.exports = async function handler(req, res) {
   }
 
   try {
-    const GEMINI_KEY = process.env.GEMINI_API_KEY;
+    const GROQ_KEY = process.env.GROQ_API_KEY;
 
-    if (!GEMINI_KEY) {
-      return res.status(500).json({ error: 'GEMINI_API_KEY not set' });
+    if (!GROQ_KEY) {
+      return res.status(500).json({ error: 'GROQ_API_KEY environment variable is not set' });
     }
 
-    const geminiURL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_KEY}`;
+    const { messages, systemPrompt } = req.body;
 
-    const geminiResponse = await fetch(geminiURL, {
+    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(req.body)
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${GROQ_KEY}`
+      },
+      body: JSON.stringify({
+        model: 'llama3-8b-8192',
+        messages: [
+          { role: 'system', content: systemPrompt },
+          ...messages
+        ],
+        max_tokens: 300,
+        temperature: 0.7
+      })
     });
 
-    const data = await geminiResponse.json();
+    const data = await response.json();
 
-    return res.status(geminiResponse.status).json(data);
+    if (!response.ok) {
+      console.error('Groq API error:', data);
+      return res.status(response.status).json(data);
+    }
+
+    return res.status(200).json({
+      reply: data.choices[0].message.content
+    });
 
   } catch (error) {
     console.error('Function error:', error);
