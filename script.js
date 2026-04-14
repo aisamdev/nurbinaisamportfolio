@@ -1,10 +1,9 @@
 /*
   CHATBOT SETUP INSTRUCTIONS:
   1. Go to Vercel Dashboard → Your Project → Settings → Environment Variables
-  2. Add variable: GEMINI_API_KEY = your key from aistudio.google.com
+  2. Add variable: GROQ_API_KEY = your key from console.groq.com
   3. Redeploy the project
   4. The chatbot will work on the live Vercel URL
-  5. To test locally, run: vercel dev (NOT VS Code Live Server — /api/chat won't work on Live Server)
 */
 
 // ============================================================
@@ -33,53 +32,40 @@ Your behavior:
 
 let chatHistory = [];
 
-async function callGemini(userMessage) {
-  // Sends request to Vercel serverless proxy — API key is stored securely in Vercel env vars
-  // To test locally: use 'vercel dev' command instead of VS Code Live Server
-
-  const body = {
-    system_instruction: {
-      parts: [{ text: SYSTEM_PROMPT }]
-    },
-    contents: [
-      ...chatHistory,
-      { role: "user", parts: [{ text: userMessage }] }
-    ],
-    generationConfig: {
-      temperature: 0.7,
-      maxOutputTokens: 250
-    }
-  };
-
+async function callGroq(userMessage) {
   console.log("Sending to /api/chat proxy...");
 
   const response = await fetch('/api/chat', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body)
+    body: JSON.stringify({
+      systemPrompt: SYSTEM_PROMPT,
+      messages: [
+        ...chatHistory,
+        { role: 'user', content: userMessage }
+      ]
+    })
   });
 
   console.log("Proxy response status:", response.status);
 
+  const data = await response.json();
+
   if (!response.ok) {
-    const errorData = await response.json();
-    console.error("Proxy error:", errorData);
+    console.error("Proxy error:", data);
     throw new Error(`Request failed: ${response.status}`);
   }
 
-  const data = await response.json();
-  console.log("Gemini reply received:", data);
+  console.log("Reply received:", data);
 
-  if (!data.candidates || data.candidates.length === 0) {
-    throw new Error("No response from Gemini");
+  if (!data.reply) {
+    throw new Error("No reply in response");
   }
 
-  const replyText = data.candidates[0].content.parts[0].text;
+  chatHistory.push({ role: 'user', content: userMessage });
+  chatHistory.push({ role: 'assistant', content: data.reply });
 
-  chatHistory.push({ role: "user", parts: [{ text: userMessage }] });
-  chatHistory.push({ role: "model", parts: [{ text: replyText }] });
-
-  return replyText;
+  return data.reply;
 }
 
 function appendMessage(role, text) {
@@ -200,15 +186,6 @@ document.addEventListener("DOMContentLoaded", () => {
   if (galleryNext) galleryNext.addEventListener("click", () => scrollGallery(1));
 
   // ── Chatbot ──────────────────────────────────────────────
-  // IDs match the current index.html exactly:
-  //   #chatTrigger  — floating trigger button
-  //   #chatPanel    — sliding panel
-  //   #chatClose    — close button inside panel
-  //   #chatForm     — form wrapper
-  //   #chatInput    — text input
-  //   #chatSend     — send button
-  //   #chatMessages — message container
-
   const chatTrigger  = document.getElementById("chatTrigger");
   const chatPanel    = document.getElementById("chatPanel");
   const chatClose    = document.getElementById("chatClose");
@@ -233,14 +210,13 @@ document.addEventListener("DOMContentLoaded", () => {
   if (chatTrigger) chatTrigger.addEventListener("click", openChat);
   if (chatClose)   chatClose.addEventListener("click", closeChat);
 
-  // Close when clicking outside
   document.addEventListener("click", (e) => {
     if (!chatPanel || !chatPanel.classList.contains("open")) return;
     if (chatPanel.contains(e.target) || (chatTrigger && chatTrigger.contains(e.target))) return;
     closeChat();
   });
 
-  // Welcome message (shown once on first open)
+  // Welcome message shown once on first open
   let greeted = false;
   if (chatTrigger) {
     chatTrigger.addEventListener("click", () => {
@@ -265,7 +241,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const typingId = showTyping();
 
     try {
-      const reply = await callGemini(text);
+      const reply = await callGroq(text);
       removeTyping(typingId);
       appendMessage("assistant", reply);
     } catch (err) {
@@ -277,7 +253,6 @@ document.addEventListener("DOMContentLoaded", () => {
     if (chatMessages) chatMessages.scrollTop = chatMessages.scrollHeight;
   };
 
-  // Wire send button and Enter key
   if (chatForm) {
     chatForm.addEventListener("submit", (e) => {
       e.preventDefault();
