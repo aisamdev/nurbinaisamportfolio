@@ -101,6 +101,24 @@ function removeTyping(id) {
   if (el) el.remove();
 }
 
+function openLightbox(src) {
+  const lb = document.getElementById('lightbox');
+  const img = document.getElementById('lightboxImg');
+  img.src = src;
+  lb.style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+}
+
+function closeLightbox() {
+  const lb = document.getElementById('lightbox');
+  lb.style.display = 'none';
+  document.body.style.overflow = '';
+}
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') closeLightbox();
+});
+
 document.addEventListener("DOMContentLoaded", () => {
   // ── Navbar scroll border ────────────────────────────────
   const siteNav = document.querySelector('.site-nav');
