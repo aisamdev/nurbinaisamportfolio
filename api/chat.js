@@ -19,7 +19,19 @@ module.exports = async function handler(req, res) {
     }
 
     const { messages, systemPrompt } = req.body;
-const safeMessages = Array.isArray(messages) ? messages : [];
+
+    const safeMessages = Array.isArray(messages) ? messages : [];
+    const safeSystemPrompt = (typeof systemPrompt === 'string' && systemPrompt.trim().length > 0)
+      ? systemPrompt.trim()
+      : 'You are a helpful AI assistant for Aisam Nurbin portfolio website.';
+
+    console.log('systemPrompt received:', safeSystemPrompt ? 'YES' : 'MISSING');
+    console.log('messages count:', safeMessages.length);
+
+    const groqMessages = [
+      { role: 'system', content: safeSystemPrompt },
+      ...safeMessages
+    ];
 
     const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
@@ -29,10 +41,7 @@ const safeMessages = Array.isArray(messages) ? messages : [];
       },
       body: JSON.stringify({
         model: 'llama3-8b-8192',
-        messages: [
-  { role: 'system', content: systemPrompt },
-  ...safeMessages
-],
+        messages: groqMessages,
         max_tokens: 300,
         temperature: 0.7
       })
