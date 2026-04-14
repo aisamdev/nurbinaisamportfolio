@@ -1,4 +1,6 @@
-export default async function handler(req, res) {
+const https = require('https');
+
+module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -15,7 +17,7 @@ export default async function handler(req, res) {
     const GEMINI_KEY = process.env.GEMINI_API_KEY;
 
     if (!GEMINI_KEY) {
-      return res.status(500).json({ error: 'GEMINI_API_KEY environment variable is not set' });
+      return res.status(500).json({ error: 'GEMINI_API_KEY not set' });
     }
 
     const geminiURL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_KEY}`;
@@ -28,15 +30,10 @@ export default async function handler(req, res) {
 
     const data = await geminiResponse.json();
 
-    if (!geminiResponse.ok) {
-      console.error('Gemini API error:', data);
-      return res.status(geminiResponse.status).json(data);
-    }
-
-    return res.status(200).json(data);
+    return res.status(geminiResponse.status).json(data);
 
   } catch (error) {
-    console.error('Serverless function error:', error);
-    return res.status(500).json({ error: 'Internal server error', details: error.message });
+    console.error('Function error:', error);
+    return res.status(500).json({ error: error.message });
   }
-}
+};
