@@ -1,183 +1,303 @@
-// Wait for DOM to load
-document.addEventListener('DOMContentLoaded', () => {
+/*
+  CHATBOT SETUP INSTRUCTIONS:
+  1. Go to Vercel Dashboard → Your Project → Settings → Environment Variables
+  2. Add variable: GEMINI_API_KEY = your key from aistudio.google.com
+  3. Redeploy the project
+  4. The chatbot will work on the live Vercel URL
+  5. To test locally, run: vercel dev (NOT VS Code Live Server — /api/chat won't work on Live Server)
+*/
 
-  // Initialize Lucide Icons
-  if (typeof lucide !== 'undefined') {
-    lucide.createIcons();
-  }
+// ============================================================
+// PORTFOLIO — script.js
+// Chatbot uses Vercel serverless proxy (/api/chat) — no API key in frontend
+// ============================================================
 
-  // --- 1. SKELETON LOADING LOGIC ---
-  const bentoCards = document.querySelectorAll('.bento-card');
-  bentoCards.forEach(card => card.classList.add('skeleton-active'));
-  
-  setTimeout(() => {
-    bentoCards.forEach(card => {
-      card.classList.remove('skeleton-active');
-      card.querySelectorAll('*').forEach(child => {
-        child.style.opacity = '1';
-      });
-    });
-  }, 1500);
+const SYSTEM_PROMPT = `You are Aisam Nurbin's personal AI assistant on his portfolio website.
 
-  // --- 2. INFINITE CONTINUOUS TYPING ANIMATION ---
-  const typingElement = document.getElementById('typing-text');
-  if (typingElement) {
-    const textToType = "AI | Aspiring Software Engineer | Video Editor";
-    let typeIndex = 0;
-    let isDeleting = false;
+About Aisam:
+- Freelance video editor and BSIT-2B student at ZPPSU (Zamboanga Peninsula Polytechnic State University), Zamboanga del Sur, Philippines
+- Skills: Short-form video editing (CapCut, DaVinci Resolve), Web Development (HTML, CSS, JavaScript, PHP, MySQL), IoT (Arduino, ESP32)
+- Projects: ZPPSU Student Portal (CRUD + PHPMailer), Smart Plant Watering System (Arduino), Triple B Sol Feedback Exit System (ESP32)
+- Portfolio: aisamportfolio.vercel.app | Email: mishinei.aisamn1@gmail.com
+- Experience: Freelance Video Editor 2026-present, BSIT student 2024-present
+- Achievement: Top 1 in Video Production at Ateneo de Zamboanga University work immersion 2023
 
-    function typeWriter() {
-      if (!isDeleting && typeIndex <= textToType.length) {
-        // Typing
-        typingElement.textContent = textToType.slice(0, typeIndex);
-        typeIndex++;
-        setTimeout(typeWriter, 100);
-      } else if (isDeleting && typeIndex >= 0) {
-        // Deleting
-        typingElement.textContent = textToType.slice(0, typeIndex);
-        typeIndex--;
-        setTimeout(typeWriter, 50);
-      } else {
-        // Pause at the end or beginning before switching directions
-        isDeleting = !isDeleting;
-        setTimeout(typeWriter, 1200);
-      }
+Your behavior:
+- When asked about Aisam (his skills, projects, experience, contact, availability) — answer based on the information above
+- When asked general questions (technology, coding, video editing tips, AI, etc.) — answer helpfully and knowledgeably like a general assistant
+- When asked casual questions (greetings, jokes, general chat) — respond in a friendly, natural way
+- Always be friendly, concise, and professional
+- Do NOT say you can only answer about Aisam — you can answer anything
+- Keep responses under 4 sentences unless a detailed answer is truly needed
+- If someone asks who you are, say: "I'm Aisam's AI assistant! I can tell you about his work, or help answer any questions you have."`;
+
+let chatHistory = [];
+
+async function callGemini(userMessage) {
+  // Sends request to Vercel serverless proxy — API key is stored securely in Vercel env vars
+  // To test locally: use 'vercel dev' command instead of VS Code Live Server
+
+  const body = {
+    system_instruction: {
+      parts: [{ text: SYSTEM_PROMPT }]
+    },
+    contents: [
+      ...chatHistory,
+      { role: "user", parts: [{ text: userMessage }] }
+    ],
+    generationConfig: {
+      temperature: 0.7,
+      maxOutputTokens: 250
     }
-    
-    // Start typing just before skeletons disappear
-    setTimeout(typeWriter, 1000); 
-  }
-
-  // --- 3. HERO SCROLL FADE LOGIC ---
-  const heroSection = document.getElementById('hero');
-  window.addEventListener('scroll', () => {
-    if (heroSection) {
-      const scrollY = window.scrollY;
-      const opacityOut = Math.max(0, 1 - (scrollY / 500));
-      heroSection.style.opacity = opacityOut;
-    }
-  });
-
-  // --- 4. INTERSECTION OBSERVER FOR HUD BENTO CARDS ---
-  const observerOptions = {
-    threshold: 0.1,
-    rootMargin: "0px 0px -50px 0px"
   };
 
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        entry.target.classList.add('visible');
-        observer.unobserve(entry.target);
-      }
-    });
-  }, observerOptions);
+  console.log("Sending to /api/chat proxy...");
 
-  document.querySelectorAll('.animate-on-scroll').forEach(el => {
-    observer.observe(el);
+  const response = await fetch('/api/chat', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body)
   });
 
-  // --- 5. NAV BAR SMOOTH SCROLLING ---
-  document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-    anchor.addEventListener('click', function (e) {
-      e.preventDefault();
-      const targetId = this.getAttribute('href');
-      const targetSection = document.querySelector(targetId);
-      
-      if (targetSection) {
-        targetSection.scrollIntoView({ 
-          behavior: 'smooth' 
-        });
-        
-        // If mobile overlay is open, close it on click
-        const mobileNav = document.getElementById('mobileNav');
-        if (mobileNav.classList.contains('active')) {
-          mobileNav.classList.remove('active');
-          document.body.style.overflow = '';
+  console.log("Proxy response status:", response.status);
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    console.error("Proxy error:", errorData);
+    throw new Error(`Request failed: ${response.status}`);
+  }
+
+  const data = await response.json();
+  console.log("Gemini reply received:", data);
+
+  if (!data.candidates || data.candidates.length === 0) {
+    throw new Error("No response from Gemini");
+  }
+
+  const replyText = data.candidates[0].content.parts[0].text;
+
+  chatHistory.push({ role: "user", parts: [{ text: userMessage }] });
+  chatHistory.push({ role: "model", parts: [{ text: replyText }] });
+
+  return replyText;
+}
+
+function appendMessage(role, text) {
+  const chatMessages = document.getElementById("chatMessages");
+  if (!chatMessages) return;
+  const bubble = document.createElement("div");
+  bubble.classList.add("chat-bubble");
+  if (role === "user") {
+    bubble.classList.add("bubble-user");
+  } else {
+    bubble.classList.add("bubble-assistant");
+  }
+  bubble.textContent = text;
+  chatMessages.appendChild(bubble);
+  chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+function showTyping() {
+  const chatMessages = document.getElementById("chatMessages");
+  if (!chatMessages) return "";
+  const id = "typing-" + Date.now();
+  const el = document.createElement("div");
+  el.id = id;
+  el.classList.add("chat-bubble", "bubble-assistant", "typing-indicator");
+  el.innerHTML = "<span></span><span></span><span></span>";
+  chatMessages.appendChild(el);
+  chatMessages.scrollTop = chatMessages.scrollHeight;
+  return id;
+}
+
+function removeTyping(id) {
+  const el = document.getElementById(id);
+  if (el) el.remove();
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  // ── Navbar scroll border ────────────────────────────────
+  const siteNav = document.querySelector('.site-nav');
+  window.addEventListener('scroll', () => {
+    if (siteNav) {
+      if (window.scrollY > 10) {
+        siteNav.classList.add('scrolled');
+      } else {
+        siteNav.classList.remove('scrolled');
+      }
+    }
+  });
+
+  // ── Theme toggle ─────────────────────────────────────────
+  const body = document.body;
+  const themeToggle = document.getElementById("themeToggle");
+
+  const applyTheme = (theme) => {
+    const t = theme === "light" ? "light" : "dark";
+    body.classList.remove("light", "dark");
+    body.classList.add(t);
+    if (themeToggle) {
+      const label = t === "dark" ? "Switch to light mode" : "Switch to dark mode";
+      themeToggle.setAttribute("aria-label", label);
+      themeToggle.setAttribute("title", label);
+    }
+    localStorage.setItem("portfolio-theme", t);
+  };
+
+  applyTheme(localStorage.getItem("portfolio-theme") || "dark");
+
+  if (themeToggle) {
+    themeToggle.addEventListener("click", () => {
+      applyTheme(body.classList.contains("dark") ? "light" : "dark");
+    });
+  }
+
+  // ── Lucide icons ─────────────────────────────────────────
+  if (typeof lucide !== "undefined") lucide.createIcons();
+
+  // ── Skeleton loader ──────────────────────────────────────
+  const skeletonTargets = document.querySelectorAll(".skeleton-target");
+  skeletonTargets.forEach((t) => t.classList.add("skeleton-active"));
+  setTimeout(() => skeletonTargets.forEach((t) => t.classList.remove("skeleton-active")), 1200);
+
+  // ── Scroll animations ────────────────────────────────────
+  const observer = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add("visible");
+          observer.unobserve(entry.target);
         }
-      }
+      });
+    },
+    { threshold: 0.12, rootMargin: "0px 0px -40px 0px" }
+  );
+  document.querySelectorAll(".animate-on-scroll").forEach((el) => observer.observe(el));
+
+  // ── Smooth scroll for anchor links ───────────────────────
+  document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
+    anchor.addEventListener("click", (e) => {
+      const target = document.querySelector(anchor.getAttribute("href"));
+      if (!target) return;
+      e.preventDefault();
+      target.scrollIntoView({ behavior: "smooth", block: "start" });
     });
   });
 
-  // --- 6. MOBILE HUD MENU TOGGLE ---
-  const mobileMenuBtn = document.querySelector('.mobile-menu-btn');
-  const closeMenuBtn = document.getElementById('closeMenuBtn');
-  const mobileNav = document.getElementById('mobileNav');
+  // ── Gallery ──────────────────────────────────────────────
+  const galleryTrack = document.getElementById("galleryTrack");
+  const galleryPrev = document.getElementById("galleryPrev");
+  const galleryNext = document.getElementById("galleryNext");
 
-  if (mobileMenuBtn && closeMenuBtn && mobileNav) {
-    mobileMenuBtn.addEventListener('click', () => {
-      mobileNav.classList.add('active');
-      document.body.style.overflow = 'hidden'; // Prevent background scrolling
-    });
+  const scrollGallery = (direction) => {
+    if (!galleryTrack) return;
+    const firstItem = galleryTrack.querySelector(".gallery-item");
+    const width = firstItem ? firstItem.getBoundingClientRect().width : 280;
+    galleryTrack.scrollBy({ left: direction * (width + 12), behavior: "smooth" });
+  };
 
-    closeMenuBtn.addEventListener('click', () => {
-      mobileNav.classList.remove('active');
-      document.body.style.overflow = '';
+  if (galleryPrev) galleryPrev.addEventListener("click", () => scrollGallery(-1));
+  if (galleryNext) galleryNext.addEventListener("click", () => scrollGallery(1));
+
+  // ── Chatbot ──────────────────────────────────────────────
+  // IDs match the current index.html exactly:
+  //   #chatTrigger  — floating trigger button
+  //   #chatPanel    — sliding panel
+  //   #chatClose    — close button inside panel
+  //   #chatForm     — form wrapper
+  //   #chatInput    — text input
+  //   #chatSend     — send button
+  //   #chatMessages — message container
+
+  const chatTrigger  = document.getElementById("chatTrigger");
+  const chatPanel    = document.getElementById("chatPanel");
+  const chatClose    = document.getElementById("chatClose");
+  const chatForm     = document.getElementById("chatForm");
+  const chatInput    = document.getElementById("chatInput");
+  const chatSend     = document.getElementById("chatSend");
+  const chatMessages = document.getElementById("chatMessages");
+
+  const openChat = () => {
+    if (!chatPanel) return;
+    chatPanel.classList.add("open");
+    chatPanel.setAttribute("aria-hidden", "false");
+    setTimeout(() => { if (chatInput) chatInput.focus(); }, 120);
+  };
+
+  const closeChat = () => {
+    if (!chatPanel) return;
+    chatPanel.classList.remove("open");
+    chatPanel.setAttribute("aria-hidden", "true");
+  };
+
+  if (chatTrigger) chatTrigger.addEventListener("click", openChat);
+  if (chatClose)   chatClose.addEventListener("click", closeChat);
+
+  // Close when clicking outside
+  document.addEventListener("click", (e) => {
+    if (!chatPanel || !chatPanel.classList.contains("open")) return;
+    if (chatPanel.contains(e.target) || (chatTrigger && chatTrigger.contains(e.target))) return;
+    closeChat();
+  });
+
+  // Welcome message (shown once on first open)
+  let greeted = false;
+  if (chatTrigger) {
+    chatTrigger.addEventListener("click", () => {
+      if (!greeted) {
+        greeted = true;
+        setTimeout(() => {
+          appendMessage("assistant", "Hi! I'm Aisam's AI assistant. Ask me anything about his skills, projects, or experience!");
+        }, 300);
+      }
     });
   }
 
-  // --- 7. VANILLA JS AMBIENT PARTICLE SYSTEM (CANVAS) ---
-  const canvas = document.getElementById('particle-canvas');
-  if (canvas) {
-    const ctx = canvas.getContext('2d');
-    let particles = [];
-    let w, h;
-    
-    function initCanvas() {
-      w = canvas.width = window.innerWidth;
-      h = canvas.height = window.innerHeight;
+  // Send message
+  const sendMessage = async () => {
+    if (!chatInput || !chatMessages) return;
+    const text = chatInput.value.trim();
+    if (!text) return;
+
+    chatInput.value = "";
+    appendMessage("user", text);
+
+    const typingId = showTyping();
+
+    try {
+      const reply = await callGemini(text);
+      removeTyping(typingId);
+      appendMessage("assistant", reply);
+    } catch (err) {
+      removeTyping(typingId);
+      console.error("Chatbot error:", err);
+      appendMessage("assistant", "Sorry, I'm having trouble connecting right now. Try again!");
     }
-    
-    window.addEventListener('resize', initCanvas);
-    initCanvas();
-    
-    class Particle {
-      constructor() {
-        this.x = Math.random() * w;
-        this.y = Math.random() * h;
-        this.size = Math.random() * 2.5 + 0.5;
-        this.speedX = Math.random() * 0.8 - 0.4;
-        this.speedY = Math.random() * 0.8 - 0.4;
-        // Spiderman colors: faint red or cyan
-        this.color = Math.random() > 0.5 ? 'rgba(226, 54, 54, 0.4)' : 'rgba(80, 139, 249, 0.4)';
-      }
-      
-      update() {
-        this.x += this.speedX;
-        this.y += this.speedY;
-        
-        // Bounce off edges
-        if (this.x < 0 || this.x > w) this.speedX *= -1;
-        if (this.y < 0 || this.y > h) this.speedY *= -1;
-      }
-      
-      draw() {
-        ctx.beginPath();
-        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-        ctx.fillStyle = this.color;
-        ctx.fill();
-        ctx.shadowBlur = 15;
-        ctx.shadowColor = this.color;
-      }
-    }
-    
-    // Create 70 particles
-    for (let i = 0; i < 70; i++) {
-      particles.push(new Particle());
-    }
-    
-    function animateParticles() {
-      ctx.clearRect(0, 0, w, h);
-      
-      particles.forEach(p => {
-        p.update();
-        p.draw();
-      });
-      
-      requestAnimationFrame(animateParticles);
-    }
-    
-    animateParticles();
+
+    if (chatMessages) chatMessages.scrollTop = chatMessages.scrollHeight;
+  };
+
+  // Wire send button and Enter key
+  if (chatForm) {
+    chatForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      sendMessage();
+    });
   }
 
+  if (chatSend) {
+    chatSend.addEventListener("click", (e) => {
+      e.preventDefault();
+      sendMessage();
+    });
+  }
+
+  if (chatInput) {
+    chatInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+      }
+    });
+  }
 });
